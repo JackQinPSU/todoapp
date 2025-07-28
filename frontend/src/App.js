@@ -86,7 +86,7 @@ function App() {
                 {error && <div className="error">{error}</div>}
 
                 {/*Add a new todo form*/}
-                <form ouSubmit={createTodo} className="todo-form">
+                <form onSubmit={createTodo} className="todo-form">
                     <input 
                         type="text"
                         value={newTodo}
@@ -98,8 +98,91 @@ function App() {
                         Add Todo
                     </button>
                 </form>
+
+                {/* Loading state */}
+                {loading && <div className="loading">Loading...</div>}
+
+                {/* Todo list */}
+                <div className="todo-list">
+                    {todos.length == 0 ? (
+                        <p className="no-todos">No todos yet. Add one above!</p>
+                    ) : (
+                        todos.map(todo => (
+                            <TodoItem 
+                            key={todo.id}
+                            todo={todo}
+                            onToggle={() => toggleTodo(todo)}
+                            onUpdate={updateTodo}
+                            onDelete={() => deleteTodo(todo.id)}
+                            />
+                        ))
+                    )}
+                </div>
             </div>
         </div>
-    )
-
+    );
 }
+
+//Individual todo item component
+function TodoItem({ todo, onToggle, onUpdate, onDelete}) {
+    const[isEditing, setIsEditing] = useState(false);
+    const[editText, setEditText] = useState(todo.title);
+
+    const handleEdit = () => {
+        if (isEditing) {
+            //Save changes
+            onUpdate(todo.id, {
+                title: editText,
+                completed: todo.completed
+            });
+        }
+        setIsEditing(!isEditing);
+    };
+
+    const handleCancel = () => {
+        setEditText(todo.title);
+        setIsEditing(false);
+    };
+
+    return (
+        <div className={`todo-item ${todo.completed ? 'completed' : ''}`}>
+            <input
+                type="checkbox"
+                checked={todo.completed}
+                onChange={onToggle}
+                className="todo-checkbox"
+            />
+
+            { isEditing ? (
+                <div className="edit-form">
+                    <input
+                        type="text"
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        className="edit-input"
+                    />
+                    <button onClick={handleEdit} className="save-btn">
+                        Save
+                    </button>
+                    <button onClick={handleCancel} className="cancel-btn">
+                        Cancel
+                    </button>
+                </div>
+            ) : (
+                <div className="todo-context">
+                    <span className="todo-text">{todo.title}</span>
+                    <div className="todo-actions">
+                        <button onClick={handleEdit} className="edit-btn">
+                            Edit
+                        </button>
+                        <button onClick={onDelete} className="delete-btn">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            )}    
+        </div>
+    );
+}
+
+export default App;
