@@ -1,15 +1,6 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-// Debug: Log environment variables (remove in production)
-console.log('Database config:', {
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT,
-    password: process.env.DB_PASSWORD ? '***' : 'undefined'
-});
-
 //Creating a connection to PostgreSQL
 const pool = new Pool({
     user: process.env.DB_USER,
