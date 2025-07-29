@@ -25,4 +25,13 @@ pool.connect((err, client, release) => {
     release();
 });
 
+// Test the connection when the module loads
+pool.on('connect', () => {
+    console.log('Connected to Railway PostgreSQL database');
+});
+
+pool.on('error', (err) => {
+    console.error('Database connection error:', err);
+});
+
 module.exports = pool;
