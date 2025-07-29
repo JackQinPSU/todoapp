@@ -1,13 +1,13 @@
+
 const { Pool } = require('pg');
 require('dotenv').config();
 
-//Creating a connection to PostgreSQL
+//Creating a connection to PostgreSQL using DATABASE_URL
 const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false // Required for Railway PostgreSQL
+    }
 });
 
 // Add error handling for the pool
@@ -21,7 +21,7 @@ pool.connect((err, client, release) => {
     if(err) {
         return console.error('Error acquiring client', err.stack);
     }
-    console.log('Connected to PostgreSQL database');
+    console.log('Connected to Railway PostgreSQL database');
     release();
 });
 
