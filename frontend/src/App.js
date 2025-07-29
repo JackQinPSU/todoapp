@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const API_URL = 'https://todoapp-1htb.onrender.com';
+const API_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api/todos';
 
 function App() {
     const [todos, setTodos] = useState([]);

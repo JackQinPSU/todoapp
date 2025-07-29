@@ -12,6 +12,7 @@ app.use(express.json());
 
 //Routes
 
+
 //GET all todos
 app.get('/api/todos', async (req, res) => {
     try {
