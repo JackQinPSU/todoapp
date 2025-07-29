@@ -47,6 +47,8 @@ todo/
 └── README.md             # Project documentation
 ```
 
+🚀 **Live Demo:** [todoapp-gy9z.vercel.app](https://todoapp-gy9z.vercel.app)
+
 ## Setup Instructions
 
 ### Prerequisites
