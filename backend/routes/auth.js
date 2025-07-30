@@ -86,7 +86,7 @@ router.post('/register', [
             }
         });
     } catch (error) {
-        console.error('Registration error': error);
+        console.error('Registration error:', error);
         res.status(500).json({
             success: false,
             error: 'Server error during registration'
@@ -158,10 +158,46 @@ router.post('/login', [
             }
         });
     } catch(error) {
-        console.error('Login error', errpr)
+        console.error('Login error', error)
         res.status(500).json({
             success: false,
             error: 'Server error during login'
         });
     }
 });
+
+//Generate current user info
+router.get('/me', authMiddleware, async(req, res) => {
+    try {
+        res.json({
+            success: true,
+            data: {
+                user: req.user
+            }
+        });
+        } catch (error) {
+            console.error('Get user error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Server error'
+            });
+        }
+});
+
+//Logout 
+router.post('/logout', authMiddleware, async(req, res) => {
+    try {
+        res.json({
+            success: true,
+            message: 'Logout successful'
+        });
+    } catch (error) {
+        console.error('Logout error', error);
+        res.status(500).json({
+            success: false,
+            error: 'Server error during logout'
+        });
+    }
+});
+
+module.exports = router;
