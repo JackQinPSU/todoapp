@@ -4,7 +4,7 @@ import axios from 'axios';
 const AuthContext = createContext();
 
 export const useAuth = () => {
-    const context = useContext(Authcontext);
+    const context = useContext(AuthContext);
     if (!context) {
         throw new Error('useAuth must be used within an AuthProvider');
     }
@@ -12,10 +12,10 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-    const[user, setUser] = useState(null);
-    const[token, setToken] = useState(null);
-    const[loading, setLoading] = useState(true);
-    const[error, setError] = useState('');
+    const [user, setUser] = useState(null);
+    const [token, setToken] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
 
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
 
         return () => {
             axios.interceptors.request.eject(requestInterceptor);
-            axios.interceptors.response.eject(requestInterceptor);
+            axios.interceptors.response.eject(responseInterceptor);
         };
     }, [token]);
 
@@ -92,6 +92,36 @@ export const AuthProvider = ({ children }) => {
             setLoading(false);
         }
     };
+
+    const register = async (name, email, password) => {
+        try {
+            setLoading(true);
+            setError('');
+
+            const response = await axios.post(`${API_BASE_URL}/auth/register`, {
+                name,
+                email,
+                password
+            });
+
+            if (response.data.success) {
+                const { user: userData, token: userToken } = response.data.data;
+                setUser(userData);
+                setToken(userToken);
+                return { success: true };
+            } else {
+                setError(response.data.error || 'Registration failed');
+                return { success: false, error: response.data.error };
+            }
+        } catch (error) {
+            const errorMessage = error.response?.data?.error || 'Registration failed. Please try again.';
+            setError(errorMessage);
+            return { success: false, error: errorMessage };
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
     const logout = async () => {
         try {

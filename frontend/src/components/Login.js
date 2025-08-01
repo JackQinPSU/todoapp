@@ -58,7 +58,7 @@ const Login = ({ switchToRegister }) => {
                         onChange={handleChange}
                         required
                         placeholder='Enter your email'
-                        className='form input'
+                        className='form-input'
                         disabled={isSubmitting}
                     />
                 </div>
@@ -73,7 +73,7 @@ const Login = ({ switchToRegister }) => {
                         onChange={handleChange}
                         required
                         placeholder="Enter your password"
-                        className="form-inpit"
+                        className="form-input"
                         disabled={isSubmitting}
                     />
                 </div>
@@ -83,7 +83,7 @@ const Login = ({ switchToRegister }) => {
                     className="auth-button"
                     disabled={isSubmitting || !formData.email || !formData.password}
                 >
-                    {idSubmitting ? 'Signing in...' : 'Sign in'}
+                    {isSubmitting ? 'Signing in...' : 'Sign in'}
                 </button>
             </form>
 

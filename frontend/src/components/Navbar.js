@@ -26,11 +26,11 @@ const Navbar = () => {
 
     return (
         <nav className="navbar">
-            <div className="navber-container">
+            <div className="navbar-container">
                 <div className="navbar-brand">
                     <h1>My Todo App</h1>
                 </div>
-            </div>
+            
 
             {user && (
                 <div className="navbar-user">
@@ -47,6 +47,7 @@ const Navbar = () => {
                     </button>
                 </div>
             )}
+            </div>
         </nav>
     );
 };

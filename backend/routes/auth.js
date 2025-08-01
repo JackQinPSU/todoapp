@@ -63,7 +63,7 @@ router.post('/register', [
 
         //Create User
         const result = await pool.query(
-            'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, email, created_at',
+            'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email, created_at',
             [name, email, hashedPassword]
         );
 

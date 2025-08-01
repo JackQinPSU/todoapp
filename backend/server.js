@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 //Authentication routes
-app.use('/api/path', authRoutes);
+app.use('/api/auth', authRoutes);
 
 // Add a test route
 app.get('/api/test', (req, res) => {
@@ -66,7 +66,7 @@ app.get('/api/setup', async (req, res) => {
                 id SERIAL PRIMARY KEY,
                 title VARCHAR(255) NOT NULL,
                 completed BOOLEAN DEFAULT FALSE,
-                user_id INTEGER REFERENCES user(id) ON DELETE CASCADE,
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -90,7 +90,7 @@ app.get('/api/setup', async (req, res) => {
                 message: 'Database tables created successfully!'
             });
     } catch(err) {
-        console.error('Setup error:', error);
+        console.error('Setup error:', err);
         res.status(500).json({
             success: false,
             error: 'Setup failed',
@@ -104,7 +104,7 @@ app.get('/api/setup', async (req, res) => {
 //Routes
 
 //PROTECTED ROUTES - Apply authentication  middleware to all todo features
-app.use('api/todos', authMiddleware);
+app.use('/api/todos', authMiddleware);
 
 //GET all todos (filtered by user)
 app.get('/api/todos', async (req, res) => {

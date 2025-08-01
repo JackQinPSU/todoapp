@@ -34,6 +34,7 @@ const Register = ({ switchToLogin }) => {
         }
         if (!formData.email.trim()) {
             setLocalError('Email is required');
+            return false;
         }
         if(formData.password.length < 6) {
             setLocalError('Password must be at least 6 characters long');
@@ -78,7 +79,7 @@ const Register = ({ switchToLogin }) => {
 
                 <form onSubmit={handleSubmit} className="auth-form">
                     <div className="form-group">
-                        <label htmlfor="name">Full Name</label>
+                        <label htmlFor="name">Full Name</label>
                         <input
                             type="text"
                             id="name"
@@ -99,6 +100,7 @@ const Register = ({ switchToLogin }) => {
                             id="email"
                             name="email"
                             value={formData.email}
+                            onChange={handleChange}
                             required
                             placeholder='Enter your email'
                             className='form-input'
@@ -122,6 +124,7 @@ const Register = ({ switchToLogin }) => {
                     </div>
 
                     <button
+                        className="auth-button"
                         type="submit"
                     >
                         {isSubmitting ? 'Creating Account...' : 'Create Account'}
