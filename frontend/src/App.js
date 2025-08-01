@@ -1,10 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { todoAPI } from './utils/api'
+import Login from './components/Login';
+import Register from './components/Register';
+import Navbar from './components/Navbar';
+import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
-const API_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api/todos';
-
+//Main App Component (Wrapped with AuthProvider)
 function App() {
+    return (
+        <AuthProvider>
+            <AppContent />
+        </AuthProvider>
+    );
+}
+
+//App Content Component (has access to auth context)
+function AppContent() {
+    const { isAuthenticated, loading } = useAuth();
+    const [authView, setAuthView] = useState('login'); // 'login' or 'register'
+
+    if (loading) {
+        return (
+            <div className="app-loading">
+                <div className="loading-spinner"></div>
+                <p>Loading Application...</p>
+            </div>
+        );
+    }
+
+    if (!isAuthenticated) {
+        return (
+            <div className="App">
+                {authView === 'login' ? (
+                    <Login switchToRegister={() => setAuthView('register')} />
+                ) : (
+                    <Register switchToLogin={() => setAuthView('login')} />
+                )}
+            </div>
+        );
+    }
+
+    return (
+        <div className="App">
+            <Navbar />
+            <ProtectedRoute>
+                <TodoApp />
+            </ProtectedRoute>
+        </div>
+    );
+
+}
+
+//Todo app component (the original todo functionality)
+function TodoApp() {
     const [todos, setTodos] = useState([]);
     const [newTodo, setNewTodo] = useState('');
     const [loading, setLoading] = useState(false);
@@ -20,7 +70,8 @@ function App() {
     const fetchTodos = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(API_URL);
+            setError('');
+            const response = await todoAPI.getTodos();
             setTodos(response.data.data);
         } catch(err) {
             setError('Failed to fetch todos');
@@ -36,7 +87,7 @@ function App() {
         if (!newTodo.trim()) return;
 
         try {
-            const response = await axios.post(API_URL, { title: newTodo });
+            const response = await todoAPI.createTodo(newTodo);
             setTodos([response.data.data, ...todos]);
             setNewTodo('');
             setError('');
@@ -49,7 +100,7 @@ function App() {
     //Change a todo by id
     const updateTodo = async (id, updates) => {
         try {
-            const response = await axios.put(`${API_URL}/${id}`, updates);
+            const response = await todoAPI.updateTodo(id, updates);
             setTodos(todos.map(todo => 
                 todo.id === id ? response.data.data: todo
             ));
@@ -62,7 +113,7 @@ function App() {
     //Delete a todo by id
     const deleteTodo = async (id) => {
         try {
-            await axios.delete(`${API_URL}/${id}`);
+            await todoAPI.deleteTodo(id);
             setTodos(todos.filter(todo => todo.id !== id));
         } catch (err) {
             setError('Failed to delete todo');
