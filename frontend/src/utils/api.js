@@ -10,6 +10,35 @@ const api = axios.create({
     },
 });
 
+
+// Add request interceptor to include token
+api.interceptors.request.use(
+    (config) => {
+        // Get token from wherever you store it (localStorage, context, etc.)
+        const token = localStorage.getItem('token'); // or get from context
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+// Add response interceptor to handle 401 errors
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            // Token expired or invalid - redirect to login
+            localStorage.removeItem('token');
+            window.location.href = '/'; // or use your routing method
+        }
+        return Promise.reject(error);
+    }
+);
+
 // Todo API calls
 export const todoAPI = {
     getTodos: () => api.get('/todos'),
