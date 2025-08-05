@@ -10,12 +10,11 @@ const api = axios.create({
     },
 });
 
-
 // Add request interceptor to include token
 api.interceptors.request.use(
     (config) => {
-        // Get token from wherever you store it (localStorage, context, etc.)
-        const token = localStorage.getItem('token'); // or get from context
+        // Get token from localStorage
+        const token = localStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -43,8 +42,8 @@ api.interceptors.response.use(
 export const todoAPI = {
     getTodos: () => api.get('/todos'),
     createTodo: (title) => api.post('/todos', { title }),
-    updateTodo: (id, updates) => api.put('/todos/' + id, updates),
-    deleteTodo: (id) => api.delete('/todos/' + id)
+    updateTodo: (id, updates) => api.put(`/todos/${id}`, updates),
+    deleteTodo: (id) => api.delete(`/todos/${id}`)
 };
 
 // Auth API calls  

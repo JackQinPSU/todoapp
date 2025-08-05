@@ -8,21 +8,41 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// CORS configuration - be more specific about origins
+const corsOptions = {
+    origin: process.env.NODE_ENV === 'production' 
+        ? ['https://your-frontend-domain.com'] // Replace with your actual frontend domain
+        : ['http://localhost:3000', 'http://127.0.0.1:3000'],
+    credentials: true,
+    optionsSuccessStatus: 200
+};
+
 //Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
+
+// Add request logging for debugging
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    if (req.body && Object.keys(req.body).length > 0) {
+        console.log('Request body:', { ...req.body, password: req.body.password ? '[HIDDEN]' : undefined });
+    }
+    next();
+});
 
 //Authentication routes
 app.use('/api/auth', authRoutes);
 
 // Add a test route
 app.get('/api/test', (req, res) => {
+    console.log('Test endpoint hit');
     res.json({ message: 'Backend is working!' });
 });
 
 // Add a database test route
 app.get('/api/db-test', async (req, res) => {
     try {
+        console.log('Database test endpoint hit');
         const result = await pool.query('SELECT NOW()');
         res.json({ 
             success: true, 
@@ -39,10 +59,11 @@ app.get('/api/db-test', async (req, res) => {
     }
 });
 
-
 //Add a setup route to create both users and todos tables
 app.get('/api/setup', async (req, res) => {
-    //Only allow in development
+    console.log('Setup endpoint hit');
+    
+    // Only allow in development
     if (process.env.NODE_ENV === 'production') {
         return res.status(403).json({ error: 'Setup not allowed in production' });
     }
@@ -83,12 +104,13 @@ app.get('/api/setup', async (req, res) => {
                     ALTER TABLE todos ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE;
                 END IF;
             END $$;
-            `);
+        `);
 
-            res.json({
-                success: true,
-                message: 'Database tables created successfully!'
-            });
+        console.log('Database setup completed successfully');
+        res.json({
+            success: true,
+            message: 'Database tables created successfully!'
+        });
     } catch(err) {
         console.error('Setup error:', err);
         res.status(500).json({
@@ -99,11 +121,8 @@ app.get('/api/setup', async (req, res) => {
     }
 });
 
-
-
 //Routes
-
-//PROTECTED ROUTES - Apply authentication  middleware to all todo features
+//PROTECTED ROUTES - Apply authentication middleware to all todo features
 app.use('/api/todos', authMiddleware);
 
 //GET all todos (filtered by user)
@@ -118,7 +137,7 @@ app.get('/api/todos', async (req, res) => {
             data: result.rows
         });
     } catch(err) {
-        console.error(err);
+        console.error('Get todos error:', err);
         res.status(500).json({success: false, error: 'Server error'});
     }
 });
@@ -145,12 +164,12 @@ app.post('/api/todos', async (req, res) => {
             data: result.rows[0]
         });
     } catch (err) {
-        console.error(err);
+        console.error('Create todo error:', err);
         res.status(500).json({ success: false, error: 'Server error'});
     }
 });
 
-//PUT todo (only if belongs to user)
+//PUT update todo (only if belongs to user)
 app.put('/api/todos/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -173,15 +192,15 @@ app.put('/api/todos/:id', async (req, res) => {
             data: result.rows[0]
         });
     } catch (err) {
-        console.error(err);
+        console.error('Update todo error:', err);
         res.status(500).json({ success: false, error: 'Server error'});
     }
 });
 
-//Delete todo 
+//DELETE todo (only if belongs to user)
 app.delete('/api/todos/:id', async (req, res) => {
     try {
-        const{ id } = req.params;
+        const { id } = req.params;
 
         const result = await pool.query(
             'DELETE FROM todos WHERE id = $1 AND user_id = $2 RETURNING *',
@@ -197,15 +216,35 @@ app.delete('/api/todos/:id', async (req, res) => {
 
         res.json({
             success: true,
-            message: 'Todos deleted successfully'
+            message: 'Todo deleted successfully'
         });
     } catch(err) {
-        console.error(err);
+        console.error('Delete todo error:', err);
         res.status(500).json({ success: false, error: 'Server error'});
     }
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err);
+    res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+    });
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+    res.status(404).json({
+        success: false,
+        error: 'Route not found'
+    });
 });
 
 //Start Server
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`Database URL configured: ${!!process.env.DATABASE_URL}`);
+    console.log(`JWT Secret configured: ${!!process.env.JWT_SECRET}`);
 });

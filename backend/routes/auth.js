@@ -7,7 +7,7 @@ const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
-//Generate JWS token
+//Generate JWT token
 const generateToken = (userId) => {
     return jwt.sign(
         { userId },
@@ -29,15 +29,18 @@ router.post('/register', [
         .withMessage('Please provide a valid email'),
     body('password')
         .isLength({min: 6})
-        .withMessage('Please must be at least 6 characters long'),
+        .withMessage('Password must be at least 6 characters long'),
 ], async (req, res) => {
     try {
+        console.log('Registration attempt:', { email: req.body.email, name: req.body.name });
+        
         // Check for validation errors
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
+            console.log('Validation errors:', errors.array());
             return res.status(400).json({
                 success: false,
-                error: 'Validation falsed',
+                error: 'Validation failed',
                 details: errors.array()
             });
         }
@@ -51,6 +54,7 @@ router.post('/register', [
         );
 
         if (existingUser.rows.length > 0) {
+            console.log('User already exists:', email);
             return res.status(400).json({
                 success: false,
                 error: 'User with this email already exists'
@@ -67,10 +71,12 @@ router.post('/register', [
             [name, email, hashedPassword]
         );
 
-        const user = result.rows[0]
+        const user = result.rows[0];
 
         //Generate JWT token
         const token = generateToken(user.id);
+
+        console.log('User registered successfully:', { id: user.id, email: user.email });
 
         res.status(201).json({
             success: true,
@@ -92,7 +98,7 @@ router.post('/register', [
             error: 'Server error during registration'
         });
     }
-} );
+});
 
 //Login User
 router.post('/login', [
@@ -105,9 +111,12 @@ router.post('/login', [
         .withMessage('Password is required')
 ], async (req, res) => {
     try {
+        console.log('Login attempt:', { email: req.body.email });
+        
         // Check for validation errors
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
+            console.log('Validation errors:', errors.array());
             return res.status(400).json({
                 success: false,
                 error: 'Validation failed',
@@ -124,6 +133,7 @@ router.post('/login', [
         );
 
         if (result.rows.length === 0) {
+            console.log('User not found:', email);
             return res.status(401).json({
                 success: false,
                 error: 'Invalid email or password'
@@ -131,11 +141,14 @@ router.post('/login', [
         }
 
         const user = result.rows[0];
+        console.log('User found:', { id: user.id, email: user.email });
 
         //Check password
         const isPasswordValid = await bcrypt.compare(password, user.password);
+        console.log('Password valid:', isPasswordValid);
 
         if (!isPasswordValid) {
+            console.log('Invalid password for user:', email);
             return res.status(401).json({
                 success: false,
                 error: "Invalid email or password"
@@ -144,6 +157,7 @@ router.post('/login', [
 
         //Generate JWT token
         const token = generateToken(user.id);
+        console.log('Login successful for user:', { id: user.id, email: user.email });
 
         res.json({
             success: true,
@@ -158,7 +172,7 @@ router.post('/login', [
             }
         });
     } catch(error) {
-        console.error('Login error', error)
+        console.error('Login error:', error);
         res.status(500).json({
             success: false,
             error: 'Server error during login'
@@ -166,7 +180,7 @@ router.post('/login', [
     }
 });
 
-//Generate current user info
+//Get current user info
 router.get('/me', authMiddleware, async(req, res) => {
     try {
         res.json({
@@ -175,24 +189,25 @@ router.get('/me', authMiddleware, async(req, res) => {
                 user: req.user
             }
         });
-        } catch (error) {
-            console.error('Get user error:', error);
-            res.status(500).json({
-                success: false,
-                error: 'Server error'
-            });
-        }
+    } catch (error) {
+        console.error('Get user error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Server error'
+        });
+    }
 });
 
 //Logout 
 router.post('/logout', authMiddleware, async(req, res) => {
     try {
+        console.log('User logged out:', req.user.email);
         res.json({
             success: true,
             message: 'Logout successful'
         });
     } catch (error) {
-        console.error('Logout error', error);
+        console.error('Logout error:', error);
         res.status(500).json({
             success: false,
             error: 'Server error during logout'
